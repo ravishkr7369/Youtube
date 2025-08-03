@@ -23,7 +23,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 		];
 	}
 
-	if (userId) {
+	if (userId && mongoose.Types.ObjectId.isValid(userId)) {
 		filter.owner = new mongoose.Types.ObjectId(userId);
 	}
 
@@ -62,6 +62,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 					'owner.username': 1,
 					'owner.email': 1,
 					'owner.avatar': 1,
+					'owner._id': 1, 
 				},
 			},
 			{ $skip: skip }, // Pagination: Skip the previous pages' results
@@ -95,10 +96,16 @@ const publishAVideo = asyncHandler(async (req, res) => {
 		throw new ApiError(400, "Title, description, video and thumbnail are required");
 	}
 
+	
+
 	try {
 		// Upload video and thumbnail to Cloudinary
 		const videoData = await uploadOnCloudinary(videoLocalPath, "video");
 		const thumbnailData = await uploadOnCloudinary(thumbnailLocalPath);
+		
+
+
+	
 
 		if (!videoData?.url || !thumbnailData?.url) {
 			throw new ApiError(500, "Upload to Cloudinary failed");

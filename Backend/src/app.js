@@ -21,6 +21,7 @@ import likeRoutes from './routes/like.routes.js';
 import commentRoutes from './routes/comment.route.js';
 import subscriptionRoutes from './routes/subscription.route.js';
 import playlistRoutes from './routes/playlist.route.js';
+import historyRoutes from './routes/history.route.js'
 
 
 
@@ -30,5 +31,6 @@ app.use('/api/v1/likes', likeRoutes);
 app.use("/api/v1/comments", commentRoutes)
 app.use("/api/v1/subscriptions", subscriptionRoutes)
 app.use("/api/v1/playlists", playlistRoutes)
+app.use("/api/v1/history", historyRoutes)
 
 export {app}

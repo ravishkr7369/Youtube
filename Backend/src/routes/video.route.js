@@ -13,12 +13,14 @@ import { upload } from "../middlewares/multer.middleware.js"
 const router = Router();
 
 
+router.use(jwtVerify); // Apply verifyJWT middleware to all routes in this file
+
 // Note: This route is not protected, so it can be accessed without authentication
 router.get("/",getAllVideos); // Get all videos, 
 router.get("/:videoId", getVideoById); // Get video by ID
 
 
-router.use(jwtVerify); // Apply verifyJWT middleware to all routes in this file
+
 
 router
 	.route("/")
@@ -43,5 +45,7 @@ router
 	.patch(upload.single("thumbnail"), updateVideo);
 
 router.route("/publish/:videoId").patch(togglePublishStatus);
+
+
 
 export default router

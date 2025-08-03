@@ -46,7 +46,7 @@ const userRegister = asyncHandler(async (req, res) => {
 	}
 
 	let avatarLocalPath;
-	console.log("Avatar: ", req.files?.avatar);
+	//console.log("Avatar: ", req.files?.avatar);
 	if (req.files && Array.isArray(req.files?.avatar) && req.files?.avatar.length > 0) {
 		avatarLocalPath = req.files.avatar[0].path;
 
@@ -54,7 +54,7 @@ const userRegister = asyncHandler(async (req, res) => {
 		throw new ApiError(400, "Avatar file is required")
 	}
 
-	console.log("Avatar Local Path: ", avatarLocalPath);
+	//console.log("Avatar Local Path: ", avatarLocalPath);
 	const avatar = await uploadOnCloudinary(avatarLocalPath);
 	if (!avatar) {
 		throw new ApiError(400, "Error uploading avatar to cloudinary")
@@ -125,11 +125,11 @@ const userLogin = asyncHandler(async (req, res) => {
 
 	const options = {
 		httpOnly: true,
-		secure: true,
-	}	
+		secure: false,
+	}
 
-// console.log("Access Token: ", accessToken);
-// console.log("Refresh Token: ", refreshToken);
+	// console.log("Access Token: ", accessToken);
+	// console.log("Refresh Token: ", refreshToken);
 	return res.status(200)
 		.cookie("accessToken", accessToken, options)
 		.cookie("refreshToken", refreshToken, options)
@@ -148,7 +148,7 @@ const userLogin = asyncHandler(async (req, res) => {
 //✅
 const userLogout = asyncHandler(async (req, res) => {
 
-	
+
 	try {
 		await User.findByIdAndUpdate(req.user._id,
 			{
@@ -271,36 +271,41 @@ const currentUser = asyncHandler(async (req, res) => {
 //✅
 const updateUserDetails = asyncHandler(async (req, res) => {
 
-
-	const { fullName, email } = req.body;
+	//console.log("Update User Details Request:", req.body);
+	const { username, fullName } = req.body;
 	try {
-
-
-		if (!fullName || !email) {
-			throw new ApiError(400, "All fields are required")
+		if (!username && !fullName) {
+			throw new ApiError(400, "At least one field (username or fullName) is required.");
 		}
 
+		const userExists = await User.findOne({ username: username.toLowerCase() });
+		//console.log("userExists", userExists)
+		if (userExists && userExists._id.toString() !== req.user?._id.toString()) {
+			throw new ApiError(409, "userName is already in use by another user.");
+		}
 
-		const user = await User.findByIdAndUpdate(req.user?._id,
-			{
-				$set: {
-					fullName,
-					email: email
-				}
-			},
-			{
-				new: true,
-			},
-			{ new: true },
+		const updateData = {};
+		if (username) updateData.username = username;
+		if (fullName) updateData.fullName = fullName;
+
+		const user = await User.findByIdAndUpdate(
+			req.user?._id,
+			{ $set: updateData },
+			{ new: true, runValidators: true }
 		).select("-password -refreshToken -__v -createdAt -updatedAt");
 
+		if (!user) {
+			throw new ApiError(404, "User not found.");
+		}
 
+		//console.log("Updated User:", user);
 		return res
 			.status(200)
 			.json(new ApiResponse(200, user, "User details updated successfully"))
 
 	} catch (error) {
-
+		console.error("Update error:", error);
+		return res.status(500).json({ message: error.message || "Server error" });
 	}
 })
 
@@ -391,7 +396,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 		// console.log(req.user._id)
 		const currentUserId = req.user?._id ? new mongoose.Types.ObjectId(req.user._id) : null;
 		// console.log(currentUserId);
-	
+
 
 		const channel = await User.aggregate([
 			{ $match: { username: username.toLowerCase() } },
@@ -415,7 +420,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 				$addFields: {
 					subscribersCount: { $size: "$subscribers" },
 					channelsSubscribedToCount: { $size: "$subscribedTo" }
-				
+
 				}
 			},
 			{
@@ -438,7 +443,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
 		const channelData = channel[0];
 
-		
+
 		const isSubscribed = channelData.subscribers.some(sub => {
 			return sub.subscriber.toString() === currentUserId?.toString();
 		});

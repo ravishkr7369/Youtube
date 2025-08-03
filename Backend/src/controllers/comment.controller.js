@@ -70,13 +70,17 @@ const addComment = asyncHandler(async (req, res) => {
 		content: text,
 	});
 
+
+	const populatedComment = await comment.populate("owner", "username avatar");
+	
+
 	// Get the count of comments for the video
 	const commentCount = await Comment.countDocuments({ video: videoId })
 
 	// You can send a response here with the comment and commentCount (if needed)
 	// For example:
 	return res.status(200).json(
-		new ApiResponse(200, { comment,commentCount }, "Comment added successfully")
+		new ApiResponse(200, { comment: populatedComment,commentCount }, "Comment added successfully")
 	)
 });
 
@@ -88,6 +92,7 @@ const updateComment = asyncHandler(async (req, res) => {
 	const { commentId } = req.params
 	const { _id } = req.user
 	const { text } = req.body
+	//console.log(commentId, _id, text)
 
 	if (!mongoose.Types.ObjectId.isValid(commentId)) {
 		throw new ApiError(400, "Invalid comment ID")

@@ -24,16 +24,16 @@ const createPlaylist = asyncHandler(async (req, res) => {
 	)
 })
 
-//✅
+//✅//TODO: get user playlists
 const getUserPlaylists = asyncHandler(async (req, res) => {
 	
-	const { userId } = req.params
+	const owner = req.user._id
 	
-	//TODO: get user playlists
-	if(!mongoose.Types.ObjectId.isValid(userId)){
+	
+	if (!mongoose.Types.ObjectId.isValid(owner)){
 		throw new ApiError(400, "Invalid user id")
 	}
-	const playlists = await Playlist.find({ owner: userId }).populate("videos")
+	const playlists = await Playlist.find({ owner}).populate("videos")
 	// console.log(playlists)
 	if (!playlists) {
 		throw new ApiError(404, "Playlists not found")
@@ -44,6 +44,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 })
 
 //✅
+
 const getPlaylistById = asyncHandler(async (req, res) => {
 	//TODO: get playlist by id
 	const { playlistId } = req.params
@@ -69,6 +70,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
 	const { playlistId, videoId } = req.params
+	//console.log("hello",playlistId, videoId)
 
 	if(!mongoose.Types.ObjectId.isValid(playlistId)){	
 		throw new ApiError(400, "Invalid playlist id")

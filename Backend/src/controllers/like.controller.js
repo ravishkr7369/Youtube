@@ -138,17 +138,20 @@ const getLikedVideos = asyncHandler(async (req, res) => {
 	const { _id } = req.user
 
 	const likedVideos = await Like.find({ likedBy: _id, video: { $exists: true } })
-		.populate("video", "title thumbnail")
-		.select("-_id -__v -likedBy")
-		.sort({ createdAt: -1 });
-
+		.sort({createdAt:-1})
+		.populate({
+			path:"video",
+			select:"title thumbnail views owner createdAt",
+			populate:{
+				path:"owner",
+				select:"username avatar"
+			}
+		})
 	const likedVideosCnt = await Like.countDocuments({ likedBy: _id, video: { $exists: true } });
-
 
 	return res.status(200).json(
 		new ApiResponse(200, { likedVideos, likedVideosCnt }, "Liked videos fetched successfully")
 	);
-
 
 })
 
