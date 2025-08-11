@@ -8,17 +8,18 @@ import { formatTimeAgo } from "../utils/timeFormat";
 import { renderVideoCard } from "../components/renderVideoCard";
 import { Pencil } from "lucide-react";
 import { toast } from "react-toastify";
+import { MoreHorizontal } from "lucide-react";
 
 function UserProfile() {
-const apiUrl = import.meta.env.VITE_URL;
- const user = useSelector((state) => state?.auth?.user);
+  const apiUrl = import.meta.env.VITE_URL;
+  
+  const user = useSelector((state) => state?.auth?.user);
 
-let videos = useSelector((state) => state.video.videos || []);
- //console.log("videos:", videos);
+  let videos = useSelector((state) => state.video.videos || []);
+  //console.log("videos:", videos);
   // Filter videos to only show those uploaded by the current user
 
- videos = videos.filter((v) => v.owner?.[0]?._id === user?._id);
-
+  videos = videos.filter((v) => v.owner?.[0]?._id === user?._id);
 
   const [profileData, setProfileData] = useState(null);
   const [playlists, setPlaylists] = useState([]);
@@ -28,7 +29,7 @@ let videos = useSelector((state) => state.video.videos || []);
   const dispatch = useDispatch();
   const [editing, setEditing] = useState(false);
   const [newAvatar, setNewAvatar] = useState(null);
-  
+
   const [form, setForm] = useState({
     username: user?.username || "",
     fullName: user?.fullName || "",
@@ -82,15 +83,78 @@ let videos = useSelector((state) => state.video.videos || []);
         const liked = res?.data?.data?.likedVideos || [];
         //console.log(liked);
         setLikedVideos(liked.map((l) => l.video));
-       // console.log("Liked Videos:", likedVideos);
+        // console.log("Liked Videos:", likedVideos);
       } catch (err) {
         console.error("Failed to fetch liked videos", err.message);
       }
     };
 
+    { /* fetch Subscribers */
+    }
+    const fetchSubscribers = async () => {
+      try {
+        const res = await axios.get(
+          `${apiUrl}/subscriptions/c/${user?._id}`
+        );
+        setSubscribers(res.data?.data || []); 
+         //console.log("Subscribers:", res.data?.data);
+      } catch (err) { 
+        console.error("Failed to fetch subscribers", err.message);
+      }
+
+    };
+    fetchSubscribers();
     fetchPlaylists();
     fetchLiked();
   }, [user]);
+
+  const [menuOpenId, setMenuOpenId] = useState(null);
+  const [modalData, setModalData] = useState(null);
+  const [modalType, setModalType] = useState("");
+  const [newName, setNewName] = useState("");
+
+  const handleMenuToggle = (playlistId) => {
+    setMenuOpenId((prev) => (prev === playlistId ? null : playlistId));
+  };
+
+  const handleOpenModal = (type, playlist) => {
+    setModalType(type);
+    setModalData(playlist);
+    if (type === "update") setNewName(playlist.name);
+    setMenuOpenId(null);
+  };
+
+  const handleCloseModal = () => {
+    setModalData(null);
+    setModalType("");
+    setNewName("");
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`${apiURL}/playlists/${modalData._id}`);
+      setPlaylists((prev) => prev.filter((p) => p._id !== modalData._id));
+      handleCloseModal();
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const res = await axios.patch(`${apiUrl}/playlists/${modalData._id}`, {
+        name: newName,
+      });
+      setPlaylists((prev) =>
+        prev.map((p) =>
+          p._id === modalData._id ? { ...p, name: res.data.data.name } : p
+        )
+      );
+      handleCloseModal();
+    } catch (err) {
+      console.error("Update failed", err);
+    }
+  };
 
   if (!profileData) return <div className="text-white p-6">Loading...</div>;
 
@@ -154,14 +218,16 @@ let videos = useSelector((state) => state.video.videos || []);
         }
       );
       console.log(res);
-     
+
       setProfileData(res.data.data);
-      
+
       setEditing(false);
       toast.success("Profile updated successfully!");
     } catch (err) {
       console.error("Update failed:", err.response?.data || err.message);
-      toast.error(`Update failed: ${err.response?.data?.message || err.message}`);
+      toast.error(
+        `Update failed: ${err.response?.data?.message || err.message}`
+      );
     }
   };
 
@@ -226,12 +292,16 @@ let videos = useSelector((state) => state.video.videos || []);
             {!editing ? (
               <>
                 <h2 className="text-2xl font-bold">
-                  {profileData.fullName.charAt(0).toUpperCase() +
-                    profileData.fullName.slice(1)}
+                  {profileData.fullName
+                    .split(" ")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ")}
                 </h2>
+
                 <p className="text-gray-400 text-sm">@{profileData.username}</p>
                 <p className="text-sm text-gray-400 mt-1">
-                  {videos.length} Videos • {subscribers.length} Subscribers
+                  {videos.length} Videos • {subscribers.length}
+                  {subscribers.subscriberCount} Subscribers
                 </p>
               </>
             ) : (
@@ -292,8 +362,8 @@ let videos = useSelector((state) => state.video.videos || []);
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-6 border-b border-gray-700 text-sm mb-8">
-          {["Home", "Liked", "Playlists", "Videos", "Shorts"].map((tab) => (
+        <div className="flex space-x-14 border-b border-gray-700 text-sm mb-8 lg:space-x-10">
+          {["Home", "Liked", "Playlists", "Videos"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -319,7 +389,7 @@ let videos = useSelector((state) => state.video.videos || []);
                     <Link
                       to={`/video/${v._id}`}
                       key={v._id}
-                      className="rounded-lg overflow-hidden hover:bg-[#2a2a2a] transition w-full sm:w-auto"
+                      className="rounded-lg overflow-hidden bg-[#181818] hover:bg-[#2a2a2a] transition w-full sm:w-auto"
                     >
                       <img
                         src={v.thumbnail}
@@ -383,7 +453,7 @@ let videos = useSelector((state) => state.video.videos || []);
                     <Link
                       to={`/playlist/${pl._id}`}
                       key={pl._id}
-                      className="rounded-lg overflow-hidden hover:bg-[#2a2a2a] transition w-full sm:w-auto"
+                      className="rounded-lg overflow-hidden bg-[#181818] hover:bg-[#2a2a2a] transition w-full sm:w-auto"
                     >
                       {/* Thumbnail or placeholder */}
                       {pl.videos[0]?.thumbnail ? (
@@ -441,36 +511,122 @@ let videos = useSelector((state) => state.video.videos || []);
                 if (!pl.videos || pl.videos.length === 0) return null;
 
                 return (
-                  <Link
-                    to={`/playlist/${pl._id}`}
+                  <div
                     key={pl._id}
-                    className="rounded-lg overflow-hidden hover:bg-[#2a2a2a] transition"
+                    className="relative rounded-lg overflow-hidden bg-[#181818] hover:bg-[#2a2a2a] transition"
                   >
-                    {/* Show first video's thumbnail if available */}
-                    {pl.videos[0]?.thumbnail ? (
-                      <img
-                        src={pl.videos[0].thumbnail}
-                        alt={pl.name}
-                        className="w-full h-40 sm:h-28 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-40 sm:h-28 bg-gray-700 flex items-center justify-center rounded mb-3 text-gray-400 text-sm">
-                        No Thumbnail
+                    <Link to={`/playlist/${pl._id}`}>
+                      {pl.videos[0]?.thumbnail ? (
+                        <img
+                          src={pl.videos[0].thumbnail}
+                          alt={pl.name}
+                          className="w-full h-40 sm:h-28 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-40 sm:h-28 bg-gray-700 flex items-center justify-center text-gray-400 text-sm">
+                          No Thumbnail
+                        </div>
+                      )}
+                      <div className="p-3">
+                        <h4 className="text-lg font-semibold line-clamp-2">
+                          {pl.name}
+                        </h4>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {pl.videos.length} videos
+                        </p>
                       </div>
-                    )}
+                    </Link>
 
-                    <div className="p-3">
-                      <h4 className="text-lg font-semibold line-clamp-2">
-                        {pl.name}
-                      </h4>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {pl.videos.length} videos
-                      </p>
+                    {/* Menu Button */}
+                    <div className="absolute bottom-7 right-2">
+                      <button
+                        onClick={() => handleMenuToggle(pl._id)}
+                        className="p-1 hover:bg-gray-700 rounded"
+                      >
+                        <MoreHorizontal size={20} color="white" />
+                      </button>
+
+                      {menuOpenId === pl._id && (
+                        <div className="absolute bottom-8 right-2 bg-[#2a2a2a] border border-gray-600 rounded shadow z-50">
+                          <button
+                            onClick={() => handleOpenModal("update", pl)}
+                            className="block px-4 py-2 text-sm text-white hover:bg-gray-700 w-full text-left"
+                          >
+                            Update
+                          </button>
+                          <button
+                            onClick={() => handleOpenModal("delete", pl)}
+                            className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-700 w-full text-left"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
+
+            {/* Modal */}
+            {modalData && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-[#1c1c1c] p-6 rounded-lg shadow-lg text-white w-full max-w-sm border border-gray-700">
+                  {modalType === "delete" ? (
+                    <>
+                      <h3 className="text-lg font-semibold mb-4 text-red-400">
+                        Delete Playlist
+                      </h3>
+                      <p className="mb-6 text-sm">
+                        Are you sure you want to delete{" "}
+                        <strong>{modalData.name}</strong>?
+                      </p>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={handleCloseModal}
+                          className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleDelete}
+                          className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-semibold mb-4 text-blue-400">
+                        Update Playlist
+                      </h3>
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="w-full p-2 rounded bg-[#2a2a2a] text-white mb-4 border border-gray-600"
+                        placeholder="Playlist name"
+                      />
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={handleCloseModal}
+                          className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleUpdate}
+                          className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-sm"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -483,7 +639,7 @@ let videos = useSelector((state) => state.video.videos || []);
                 <Link
                   to={`/video/${v._id}`}
                   key={v._id}
-                  className="rounded-lg overflow-hidden hover:bg-[#2a2a2a] transition"
+                  className="rounded-lg overflow-hidden bg-[#181818] hover:bg-[#2a2a2a] transition"
                 >
                   <img
                     src={v.thumbnail}
@@ -504,12 +660,7 @@ let videos = useSelector((state) => state.video.videos || []);
           </div>
         )}
 
-        {/* Shorts and Posts Placeholder */}
-        {["Shorts", "Posts"].includes(activeTab) && (
-          <div className="text-gray-400 text-sm mt-10">
-            {activeTab} feature is coming soon.
-          </div>
-        )}
+        {/* End of Tab Content */}
       </div>
     </div>
   );

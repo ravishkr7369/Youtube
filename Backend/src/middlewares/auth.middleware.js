@@ -8,7 +8,7 @@ import User from "../models/user.model.js";
 
 export const jwtVerify = asyncHandler(async (req, res, next) => {
 
-	const token = req.cookies?.accessToken||req.headers?.authorization || null;
+	const token = req.cookies?.accessToken||req.headers?.authorization?.split(" ")[1] || null;
 	//console.log("token", token)
 	if (!token) {
 
@@ -31,7 +31,7 @@ export const jwtVerify = asyncHandler(async (req, res, next) => {
 
 		req.user = user;
 
-
+		
 
 		next();
 	}

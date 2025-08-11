@@ -8,7 +8,7 @@ export const renderVideoCard = (video) => (
   <Link
     to={`/video/${video?._id}`}
     key={video?._id}
-    className="rounded-lg overflow-hidden hover:bg-[#2a2a2a] transition flex flex-col sm:block"
+    className="rounded-lg overflow-hidden bg-[#181818] hover:bg-[#2a2a2a] transition flex flex-col sm:block"
   >
     <img
       src={video?.thumbnail}

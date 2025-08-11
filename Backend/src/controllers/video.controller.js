@@ -142,9 +142,15 @@ const getVideoById = asyncHandler(async (req, res) => {
 	}
 
 	try {
+
+		const updateResult = await Video.updateOne(
+			{ _id: videoId },
+			{ $inc: { views: 1 } }
+		);
 		// Aggregate query to fetch video and owner details
 		const videos = await Video.aggregate([
 			{ $match: { _id: new mongoose.Types.ObjectId(videoId) } },
+			
 			{
 				$lookup: {
 					from: 'users',
@@ -160,6 +166,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 					videoFile: 1,
 					thumbnail: 1,
 					duration: 1,
+					views: 1,
 					isPublished: 1,
 					createdAt: 1,
 					updatedAt: 1,
