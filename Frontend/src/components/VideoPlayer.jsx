@@ -12,6 +12,7 @@ import {
   MessageSquare,
   VolumeX,
   Volume2,
+  MessageCircle,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import CommentSection from "./CommentSection";
@@ -20,7 +21,8 @@ import { toast } from "react-toastify";
 
 function VideoPlayer() {
   const apiUrl = import.meta.env.VITE_URL;
-  const location=useLocation()
+  const location = useLocation();
+
   const { id } = useParams();
   //console.log(id)
   const navigate = useNavigate();
@@ -38,9 +40,9 @@ function VideoPlayer() {
 
   const user = useSelector((state) => state.auth.user);
   const userId = user?._id;
- // console.log("Current User:", userId);
+  // console.log("Current User:", userId);
   const channelId = video?.owner?.[0]?._id;
- // console.log("Channel ID:", channelId);
+  // console.log("Channel ID:", channelId);
 
   const fetchChannelSubscriptionStatus = async () => {
     try {
@@ -92,6 +94,7 @@ function VideoPlayer() {
         { withCredentials: true }
       );
       const { likeCount, isLiked, isDisliked } = res.data?.data;
+      //console.log("Like response:", res.data);
       setLikeCount(likeCount);
       setLiked(!!isLiked);
       setDisliked(!!isDisliked);
@@ -100,19 +103,16 @@ function VideoPlayer() {
     }
   };
 
-  
+  const handleDislike = async (reactionType) => {
+    await handleLike(reactionType);
 
-const handleDislike = async (reactionType) => {
-  await handleLike(reactionType);
-
-  // If you're on the Liked tab, remove the video from the liked list
-  if (location.pathname === "/profile" && activeTab === "Liked") {
-    if (onRemoveFromLiked) {
-      onRemoveFromLiked(id);
+    // If you're on the Liked tab, remove the video from the liked list
+    if (location.pathname === "/profile" && activeTab === "Liked") {
+      if (onRemoveFromLiked) {
+        onRemoveFromLiked(id);
+      }
     }
-  }
-};
-
+  };
 
   const handleLoadedMetadata = () => {
     setIsShorts((videoRef.current?.duration || 0) < 60);
@@ -138,7 +138,6 @@ const handleDislike = async (reactionType) => {
     }
   };
 
-
   const menuRef = useRef(null);
   const [selectedPlaylists, setSelectedPlaylists] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
@@ -151,6 +150,9 @@ const handleDislike = async (reactionType) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRefs = useRef({});
 
+  {
+    /* Handle video sharing */
+  }
   const handleShare = async () => {
     if (isSharing) return;
 
@@ -176,7 +178,6 @@ const handleDislike = async (reactionType) => {
     }
   };
 
-
   // add video to the playlists
   const togglePlaylistSelection = async (playlistId) => {
     const isSelected = selectedPlaylists.includes(playlistId);
@@ -185,8 +186,8 @@ const handleDislike = async (reactionType) => {
         ? `${apiUrl}/playlists/remove/${id}/${playlistId}`
         : `${apiUrl}/playlists/add/${id}/${playlistId}`;
 
-    await axios.patch(url, {}, { withCredentials: true });
-      toast .success("Playlist updated successfully!");
+      await axios.patch(url, {}, { withCredentials: true });
+      toast.success("Playlist updated successfully!");
       setSelectedPlaylists((prev) =>
         isSelected
           ? prev.filter((pid) => pid !== playlistId)
@@ -198,6 +199,9 @@ const handleDislike = async (reactionType) => {
     }
   };
 
+  {
+    /* Close more menu on outside click */
+  }
   useEffect(() => {
     if (!showMoreMenu) return;
 
@@ -215,8 +219,11 @@ const handleDislike = async (reactionType) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showMoreMenu]);
 
+  {
+    /* Handle More button click */
+  }
   const handleMore = async () => {
-   // console.log("Clicked More button");
+    // console.log("Clicked More button");
     //console.log("Previous state:", showMoreMenu);
     if (showMoreMenu) {
       setShowMoreMenu(false);
@@ -293,6 +300,13 @@ const handleDislike = async (reactionType) => {
   }, [allVideos, id, navigate]);
 
   const [currentShortId, setCurrentShortId] = useState(id);
+  // console.log(currentShortId)
+  // console.log(id)
+
+   useEffect(() => {
+     setCurrentShortId(id);
+   }, [id]);
+
 
   {
     /* Set Muted */
@@ -368,7 +382,6 @@ const handleDislike = async (reactionType) => {
           .map((v) => {
             const isCurrent = v._id === currentShortId;
             const o = v.owner?.[0];
-            
 
             return (
               <div
@@ -413,7 +426,7 @@ const handleDislike = async (reactionType) => {
                 {isCurrent && (
                   <>
                     {/* Right-side action buttons */}
-                    <div className="absolute right-3.5 bottom-32 flex flex-col items-center gap-5 z-10">
+                    <div className="absolute right-7  bottom-40 flex flex-col items-center gap-5 z-10">
                       <button
                         onClick={() => handleLike("like")}
                         className="flex flex-col items-center"
@@ -451,22 +464,27 @@ const handleDislike = async (reactionType) => {
                     </div>
 
                     {/* Channel info */}
-                    <div className="absolute bottom-20 left-4 z-10 pr-4 flex items-center gap-4">
-                      <img
-                        src={o?.avatar}
-                        alt={o?.username}
-                        className="w-10 h-10 rounded-full object-cover border border-white"
-                      />
-                      <div className="flex flex-col">
-                        <h3 className="text-base font-semibold">
-                          {o?.username}
-                        </h3>
-                        <p className="text-sm text-gray-300">{v.title}</p>
+                    <div className="absolute bottom-20 left-3 z-10 pr-4 flex items-center justify-between w-[calc(100%-2rem)]">
+                      {/* Avatar + Name + Title */}
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={o?.avatar}
+                          alt={o?.username}
+                          className="w-10 h-10 rounded-full object-cover border border-white"
+                        />
+                        <div className="flex flex-col">
+                          <h3 className="text-base font-semibold">
+                            {o?.username}
+                          </h3>
+                          <p className="text-sm text-gray-300">{v.title}</p>
+                        </div>
                       </div>
+
+                      {/* Subscribe Button */}
                       {user?._id !== o?._id && (
                         <button
                           onClick={toggleSubscribe}
-                          className={`ml-4 ${
+                          className={`${
                             isSubscribed
                               ? "bg-[#1c1c1c] text-white border border-gray-500"
                               : "bg-white text-black"
@@ -505,7 +523,7 @@ const handleDislike = async (reactionType) => {
     /* Regular video player layout */
   }
   return (
-    <div className="bg-[#0F0F0F] text-white min-h-screen px-2 pt-16">
+    <div className="bg-[#0F0F0F] text-white min-h-screen pt-16">
       <div className="flex flex-col lg:flex-row gap-6 pt-4">
         <div className="flex-1">
           <video
@@ -520,6 +538,102 @@ const handleDislike = async (reactionType) => {
                 : "w-full aspect-video max-w-full"
             }`}
           />
+
+          {isShorts && (
+            <>
+              {/* Right-side action buttons */}
+              <div className="absolute right-[735px] top-[63%] -translate-y-1/2 flex flex-col items-center gap-6 z-10">
+                {/* Like */}
+                <button
+                  onClick={() => handleLike("like")}
+                  className="flex flex-col items-center text-white hover:opacity-80 cursor-pointer"
+                >
+                  <ThumbsUp size={28} fill={liked ? "white" : "none"} />
+                  <span className="text-sm">{likeCount}</span>
+                </button>
+
+                {/* Dislike */}
+                <button
+                  onClick={() => handleDislike("dislike")}
+                  className="flex flex-col items-center text-white hover:opacity-80 cursor-pointer"
+                >
+                  <ThumbsDown size={28} fill={disliked ? "white" : "none"} />
+                </button>
+
+                {/* Comment */}
+                <button
+                  onClick={() => setShowComments(true)}
+                  className="flex flex-col items-center text-white hover:opacity-80 cursor-pointer"
+                >
+                  <MessageCircle size={28} />
+                </button>
+
+                {/* Share */}
+                <button
+                  onClick={handleShare}
+                  className="flex flex-col items-center text-white hover:opacity-80 cursor-pointer"
+                >
+                  <Share2 size={28} />
+                </button>
+
+                {/* Download */}
+                <button
+                  onClick={handleDownload}
+                  className="flex flex-col items-center text-white hover:opacity-80"
+                >
+                  <Download size={28} />
+                </button>
+              </div>
+
+              {/* Bottom-left channel info */}
+              <div className="absolute bottom-20 left-[26%] z-10 flex items-center justify-between w-[calc(100%-5rem)]">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={owner?.avatar}
+                    alt={owner?.username}
+                    className="w-10 h-10 rounded-full object-cover border border-white"
+                  />
+                  <div className="flex flex-col">
+                    <h3 className="text-base font-semibold">
+                      {owner?.username}
+                    </h3>
+                    <p className="text-sm text-gray-300">{video.title}</p>
+                  </div>
+                </div>
+
+                {/* Subscribe Button */}
+                {user?._id !== owner?._id && (
+                  
+                  <button
+                    onClick={toggleSubscribe}
+                    className={`${
+                      isSubscribed
+                        ? "bg-[#1c1c1c] text-white border border-gray-500"
+                        : "bg-white text-black"
+                    } px-4 py-1 rounded-full text-sm font-semibold`}
+                  >
+                    {isSubscribed ? "Subscribed" : "Subscribe"}
+                  </button>
+                )}
+              </div>
+
+              {/* Comments drawer */}
+              {showComments && (
+                <div className="absolute bottom-0 left-0 w-full h-[60%] bg-[#111111] rounded-t-2xl z-50 overflow-y-auto p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-lg font-semibold">Comments</h4>
+                    <button
+                      onClick={() => setShowComments(false)}
+                      className="text-sm text-gray-400 cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <CommentSection videoId={video._id} />
+                </div>
+              )}
+            </>
+          )}
 
           {!isShorts && (
             <>
@@ -540,7 +654,7 @@ const handleDislike = async (reactionType) => {
                   {owner?._id !== user?._id && (
                     <button
                       onClick={toggleSubscribe}
-                      className={`ml-2 mr-1 ${
+                      className={`ml-2 mr-2 ${
                         isSubscribed
                           ? "bg-[#1c1c1c] text-white hover:bg-[#222222]"
                           : "bg-white text-black hover:bg-gray-200"
@@ -552,7 +666,7 @@ const handleDislike = async (reactionType) => {
                 </div>
 
                 <div className="flex items-center justify-around flex-wrap gap-2 sm:gap-4 overflow-x-auto scrollbar-hide max-w-full w-full sm:w-auto">
-                  <motion.div className="flex rounded-full bg-[#272727] px-4 sm:px-6 py-1.5 sm:py-2 text-sm">
+                  <motion.div className="flex rounded-full bg-[#272727] px-2 md:px-6 py-1.5 sm:py-2 text-sm">
                     <button
                       onClick={() => handleLike("like")}
                       className="flex items-center gap-1 cursor-pointer"
@@ -656,29 +770,32 @@ const handleDislike = async (reactionType) => {
                                 if (!newPlaylistName.trim()) return;
 
                                 try {
-                                const res = await axios.post(
-                                  `${apiUrl}/playlists`,
-                                  { name: newPlaylistName },
-                                  { withCredentials: true }
-                                );
+                                  const res = await axios.post(
+                                    `${apiUrl}/playlists`,
+                                    { name: newPlaylistName },
+                                    { withCredentials: true }
+                                  );
 
-                                const created = res.data?.data;
+                                  const created = res.data?.data;
 
-                                // 🆕 Immediately add the video to the playlist
-                                await axios.patch(
-                                  `${apiUrl}/playlists/add/${id}/${created._id}`,
-                                  {},
-                                  { withCredentials: true }
-                                );
+                                  
+                                  await axios.patch(
+                                    `${apiUrl}/playlists/add/${id}/${created._id}`,
+                                    {},
+                                    { withCredentials: true }
+                                  );
 
-                                setUserPlaylists((prev) => [...prev, created]);
-                                setSelectedPlaylists((prev) => [
-                                  ...prev,
-                                  created._id,
-                                ]);
-                                 toast.success(
-                                   "Playlist created and video added!"
-                                 );
+                                  setUserPlaylists((prev) => [
+                                    ...prev,
+                                    created,
+                                  ]);
+                                  setSelectedPlaylists((prev) => [
+                                    ...prev,
+                                    created._id,
+                                  ]);
+                                  toast.success(
+                                    "Playlist created and video added!"
+                                  );
                                   setCreatingPlaylist(false);
                                   setNewPlaylistName("");
                                 } catch (err) {
@@ -732,7 +849,7 @@ const handleDislike = async (reactionType) => {
                     : video.description?.slice(0, 200)}
                   {video.description?.length > 200 && (
                     <button
-                      className="text-blue-400 ml-2"
+                      className="text-blue-400 ml-2 cursor-pointer"
                       onClick={() => setShowMore(!showMore)}
                     >
                       {showMore ? "Show Less" : "Show More"}
@@ -746,6 +863,8 @@ const handleDislike = async (reactionType) => {
           )}
         </div>
 
+
+          {/*suggestion videos */}
         <div className="lg:w-[410px] w-full flex flex-col gap-3">
           {allVideos
             .filter((v) => v._id !== id)
@@ -775,6 +894,7 @@ const handleDislike = async (reactionType) => {
               );
             })}
         </div>
+
       </div>
     </div>
   );

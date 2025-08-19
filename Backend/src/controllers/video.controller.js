@@ -213,7 +213,7 @@ const updateVideo = asyncHandler(async (req, res) => {
 		throw new ApiError(400, "No data provided for update");
 	}
 
-	const { title, description } = req.body;
+	const { title, description,thumbnail } = req.body;
 	let thumbnailUrl;
 
 	try {

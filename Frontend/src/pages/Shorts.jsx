@@ -15,6 +15,7 @@ function Shorts() {
         // filter: either use duration or a flag like `isShort`
         const all = res?.data?.data?.videos || [];
         const shortsOnly = all.filter((v) => v.duration <= 60 || v.isShort);
+        //console.log("Shorts fetched:", shortsOnly);
         setShorts(shortsOnly);
       } catch (err) {
         console.error("Failed to fetch shorts:", err.message);
@@ -33,6 +34,7 @@ function Shorts() {
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {shorts.map((video) => (
             <VideoCard key={video._id} video={video} />
+            
           ))}
         </div>
       )}

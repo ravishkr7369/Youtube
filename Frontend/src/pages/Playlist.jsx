@@ -29,8 +29,11 @@ function Playlist() {
     <div className="min-h-screen bg-[#0F0F0F] text-white pt-20 px-4">
       {playlist.videos.length === 0 && (
         <div className="text-gray-400 text-center py-10">
-          <h2 className="text-2xl font-semibold mb-4">No videos in this playlist</h2>
-          </div>)}
+          <h2 className="text-2xl font-semibold mb-4">
+            No videos in this playlist
+          </h2>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl font-bold mb-2">{playlist.name}</h2>
         <p className="text-gray-400 mb-6">{playlist.videos.length} Videos</p>
@@ -45,15 +48,14 @@ function Playlist() {
               <img
                 src={video.thumbnail}
                 alt={video.title}
-                className="w-full h-28 object-cover"
+                className="w-full h-40 sm:h-28 object-cover"
               />
               <div className="p-3">
                 <h4 className="text-lg font-semibold line-clamp-2">
                   {video.title}
                 </h4>
                 <p className="text-xs text-gray-400 mt-1">
-                  {video.views} views •{" "}
-                  {formatTimeAgo(video.createdAt)}
+                  {video.views} views • {formatTimeAgo(video.createdAt)}
                 </p>
               </div>
             </Link>

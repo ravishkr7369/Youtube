@@ -108,10 +108,11 @@ function Index() {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/playlists" element={<PlaylistsPage />} />
           <Route path="/playlist/:id" element={<Playlist />} />
-    
+
           <Route path="/liked" element={<LikedVideosPage />} />
           <Route path="/:id/videos" element={<YourVideos />} />
           <Route path="/shorts" element={<Shorts />} />
+          <Route path="/shorts/:id" element={<VideoPlayer isShorts />} />
           <Route path="/history" element={<HistoryPage />} />
         </Routes>
       </main>

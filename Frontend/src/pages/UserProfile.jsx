@@ -28,7 +28,7 @@ function UserProfile() {
   const [likedVideos, setLikedVideos] = useState([]);
   const dispatch = useDispatch();
   const [editing, setEditing] = useState(false);
-  const [newAvatar, setNewAvatar] = useState(null);
+
 
   const [form, setForm] = useState({
     username: user?.username || "",
@@ -113,34 +113,41 @@ function UserProfile() {
   const [modalType, setModalType] = useState("");
   const [newName, setNewName] = useState("");
 
-  const handleMenuToggle = (playlistId) => {
+  const [videoMenuOpenId, setVideoMenuOpenId] = useState(null);
+  const [videoModalData, setVideoModalData] = useState(null);
+  const [videoModalType, setVideoModalType] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newThumbnail, setNewThumbnail] = useState(null);
+
+  const handlePlaylistMenuToggle = (playlistId) => {
     setMenuOpenId((prev) => (prev === playlistId ? null : playlistId));
   };
 
-  const handleOpenModal = (type, playlist) => {
+  const handlePlaylistOpenModal = (type, playlist) => {
     setModalType(type);
     setModalData(playlist);
     if (type === "update") setNewName(playlist.name);
     setMenuOpenId(null);
   };
 
-  const handleCloseModal = () => {
+  const handlePlaylistCloseModal = () => {
     setModalData(null);
     setModalType("");
     setNewName("");
   };
 
-  const handleDelete = async () => {
+  const handlePlaylistDelete = async () => {
     try {
-      await axios.delete(`${apiURL}/playlists/${modalData._id}`);
+      await axios.delete(`${apiUrl}/playlists/${modalData._id}`);
       setPlaylists((prev) => prev.filter((p) => p._id !== modalData._id));
-      handleCloseModal();
+      handlePlaylistCloseModal();
     } catch (err) {
       console.error("Delete failed", err);
     }
   };
 
-  const handleUpdate = async () => {
+  const handlePlaylistUpdate = async () => {
     try {
       const res = await axios.patch(`${apiUrl}/playlists/${modalData._id}`, {
         name: newName,
@@ -150,11 +157,72 @@ function UserProfile() {
           p._id === modalData._id ? { ...p, name: res.data.data.name } : p
         )
       );
-      handleCloseModal();
+      handlePlaylistCloseModal();
     } catch (err) {
       console.error("Update failed", err);
     }
   };
+
+  const handleVideoMenuToggle = (videoId) => {
+    setVideoMenuOpenId((prev) => (prev === videoId ? null : videoId));
+  };
+
+  const handleVideoOpenModal = (type, video) => {
+    setVideoModalType(type);
+    setVideoModalData(video);
+    if (type === "update") {
+      setNewTitle(video.title);
+      setNewDescription(video.description || "");
+    }
+    setVideoMenuOpenId(null);
+  };
+
+  const handleVideoCloseModal = () => {
+    setVideoModalData(null);
+    setVideoModalType("");
+    setNewTitle("");
+    setNewDescription("");
+  };
+
+  const handleVideoDelete = async () => {
+    try {
+      await axios.delete(`${apiUrl}/videos/${videoModalData._id}`, {
+        withCredentials: true,
+      });
+      videos = videos.filter((v) => v._id !== videoModalData._id);
+      dispatch(getVideos()); // refresh list
+      handleVideoCloseModal();
+      toast.success("Video deleted successfully");
+    } catch (err) {
+      console.error("Delete failed", err);
+      toast.error("Failed to delete video");
+    }
+  };
+
+ const handleVideoUpdate = async () => {
+   try {
+     const formData = new FormData();
+     formData.append("title", newTitle);
+     formData.append("description", newDescription);
+     if (newThumbnail) {
+       formData.append("thumbnail", newThumbnail); // matches multer field name
+     }
+
+     await axios.patch(`${apiUrl}/videos/${videoModalData._id}`, formData, {
+       withCredentials: true,
+       headers: { "Content-Type": "multipart/form-data" },
+     });
+
+     dispatch(getVideos());
+     handleVideoCloseModal();
+     toast.success("Video updated successfully");
+   } catch (err) {
+     console.error("Update failed", err);
+     toast.error("Failed to update video");
+   }
+ };
+
+
 
   if (!profileData) return <div className="text-white p-6">Loading...</div>;
 
@@ -172,10 +240,10 @@ function UserProfile() {
     try {
       const res = await axios.patch(`${apiUrl}/users/avatar`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true, // if you're using cookies
+        withCredentials: true, 
       });
-
-      setProfileData(res.data.data); // assuming `res.data.data` is the updated user
+      await dispatch(fetchCurrentUser());
+      setProfileData(res.data.data); 
       toast.success("Avatar updated successfully!");
     } catch (err) {
       console.error("Avatar update failed:", err.message);
@@ -507,6 +575,13 @@ function UserProfile() {
           <div className="mb-10">
             <h3 className="text-xl font-semibold mb-4">Created Playlists</h3>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {playlists?.filter(Boolean).length === 0 ? (
+                <p className="text-gray-400 text-sm">
+                  No playlists created yet.
+                </p>
+              ) : (
+                <></>
+              )}
               {playlists.map((pl) => {
                 if (!pl.videos || pl.videos.length === 0) return null;
 
@@ -538,24 +613,28 @@ function UserProfile() {
                     </Link>
 
                     {/* Menu Button */}
-                    <div className="absolute bottom-7 right-2">
+                    <div className="absolute bottom-5 right-2">
                       <button
-                        onClick={() => handleMenuToggle(pl._id)}
+                        onClick={() => handlePlaylistMenuToggle(pl._id)}
                         className="p-1 hover:bg-gray-700 rounded"
                       >
                         <MoreHorizontal size={20} color="white" />
                       </button>
 
                       {menuOpenId === pl._id && (
-                        <div className="absolute bottom-8 right-2 bg-[#2a2a2a] border border-gray-600 rounded shadow z-50">
+                        <div className="absolute bottom-9 right-8 bg-[#2a2a2a] border border-gray-600 rounded shadow z-50">
                           <button
-                            onClick={() => handleOpenModal("update", pl)}
+                            onClick={() =>
+                              handlePlaylistOpenModal("update", pl)
+                            }
                             className="block px-4 py-2 text-sm text-white hover:bg-gray-700 w-full text-left"
                           >
                             Update
                           </button>
                           <button
-                            onClick={() => handleOpenModal("delete", pl)}
+                            onClick={() =>
+                              handlePlaylistOpenModal("delete", pl)
+                            }
                             className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-700 w-full text-left"
                           >
                             Delete
@@ -583,13 +662,13 @@ function UserProfile() {
                       </p>
                       <div className="flex justify-end space-x-3">
                         <button
-                          onClick={handleCloseModal}
+                          onClick={handlePlaylistCloseModal}
                           className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-sm"
                         >
                           Cancel
                         </button>
                         <button
-                          onClick={handleDelete}
+                          onClick={handlePlaylistDelete}
                           className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-sm"
                         >
                           Delete
@@ -610,13 +689,13 @@ function UserProfile() {
                       />
                       <div className="flex justify-end space-x-3">
                         <button
-                          onClick={handleCloseModal}
+                          onClick={handlePlaylistCloseModal}
                           className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-sm"
                         >
                           Cancel
                         </button>
                         <button
-                          onClick={handleUpdate}
+                          onClick={handlePlaylistUpdate}
                           className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-sm"
                         >
                           Change
@@ -636,27 +715,160 @@ function UserProfile() {
             <h3 className="text-xl font-semibold mb-4">Your Videos</h3>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {videos.map((v) => (
-                <Link
-                  to={`/video/${v._id}`}
+                <div
                   key={v._id}
-                  className="rounded-lg overflow-hidden bg-[#181818] hover:bg-[#2a2a2a] transition"
+                  className="relative rounded-lg overflow-hidden bg-[#181818] hover:bg-[#2a2a2a] transition"
                 >
-                  <img
-                    src={v.thumbnail}
-                    alt={v.title}
-                    className="w-full h-40 sm:h-28 object-cover"
-                  />
-                  <div className="p-3">
-                    <h4 className="text-base sm:text-lg font-semibold line-clamp-2">
-                      {v.title}
-                    </h4>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {v.views} views • {formatTimeAgo(v.createdAt)}
-                    </p>
+                  <Link to={`/video/${v._id}`}>
+                    <img
+                      src={v.thumbnail}
+                      alt={v.title}
+                      className="w-full h-40 sm:h-28 object-cover"
+                    />
+                    <div className="p-3">
+                      <h4 className="text-base sm:text-lg font-semibold line-clamp-2">
+                        {v.title}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {v.views} views • {formatTimeAgo(v.createdAt)}
+                      </p>
+                    </div>
+                  </Link>
+
+                  {/* Three-dot menu */}
+                  <div className="absolute bottom-5 right-2">
+                    <button
+                      onClick={() => handleVideoMenuToggle(v._id)}
+                      className="p-1 hover:bg-gray-700 rounded"
+                    >
+                      <MoreHorizontal size={20} color="white" />
+                    </button>
+
+                    {videoMenuOpenId === v._id && (
+                      <div className="absolute bottom-9 right-8 bg-[#2a2a2a] border border-gray-600 rounded shadow z-50">
+                        <button
+                          onClick={() => handleVideoOpenModal("update", v)}
+                          className="block px-4 py-2 text-sm text-white hover:bg-gray-700 w-full text-left"
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={() => handleVideoOpenModal("delete", v)}
+                          className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-700 w-full text-left"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
+
+            {videoModalData && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-[#1c1c1c] p-6 rounded-lg shadow-lg text-white w-full max-w-sm border border-gray-700">
+                  {videoModalType === "delete" ? (
+                    <>
+                      <h3 className="text-lg font-semibold mb-4 text-red-400">
+                        Delete Video
+                      </h3>
+                      <p className="mb-6 text-sm">
+                        Are you sure you want to delete{" "}
+                        <strong>{videoModalData.title}</strong>?
+                      </p>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={handleVideoCloseModal}
+                          className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleVideoDelete}
+                          className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-semibold mb-4 text-blue-400">
+                        Update Video
+                      </h3>
+
+                      {/* Thumbnail Picker */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">
+                          Thumbnail
+                        </label>
+                        <div
+                          onClick={() =>
+                            document.getElementById("thumbnailInput").click()
+                          }
+                          className="cursor-pointer border border-gray-600 rounded-lg overflow-hidden w-48 h-28 bg-[#2a2a2a] flex items-center justify-center hover:bg-gray-700"
+                        >
+                          {newThumbnail ? (
+                            <img
+                              src={URL.createObjectURL(newThumbnail)}
+                              alt="New Thumbnail"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <img
+                              src={videoModalData.thumbnail}
+                              alt="Current Thumbnail"
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          id="thumbnailInput"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => setNewThumbnail(e.target.files[0])}
+                        />
+                      </div>
+
+                      {/* Title */}
+                      <input
+                        type="text"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        className="w-full p-2 rounded bg-[#2a2a2a] text-white mb-4 border border-gray-600"
+                        placeholder="Video title"
+                      />
+
+                      {/* Description */}
+                      <textarea
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                        className="w-full p-2 rounded bg-[#2a2a2a] text-white mb-4 border border-gray-600"
+                        placeholder="Video description"
+                      />
+
+                      {/* Buttons */}
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={handleVideoCloseModal}
+                          className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleVideoUpdate}
+                          className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-sm"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
