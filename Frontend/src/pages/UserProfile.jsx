@@ -430,7 +430,7 @@ function UserProfile() {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-14 border-b border-gray-700 text-sm mb-8 lg:space-x-10">
+        <div className="flex space-x-9 border-b border-gray-700 text-sm mb-8 lg:space-x-10">
           {["Home", "Liked", "Playlists", "Videos"].map((tab) => (
             <button
               key={tab}

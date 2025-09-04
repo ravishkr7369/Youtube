@@ -18,6 +18,7 @@ import YourVideos from "./pages/YourVideos";
 import SearchResults from "./pages/SearchResults";
 import BottomNav from "./components/BottomNav";
 import Shorts from "./pages/Shorts";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // ✅ Hook to detect screen size
 function useIsLaptop() {
@@ -44,7 +45,9 @@ function Index() {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/signup";
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/forgot-password";
 
   // ✅ Step 1: Fetch current user once
   useEffect(() => {
@@ -102,6 +105,7 @@ function Index() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/" element={<App />} />
           <Route path="/video/:id" element={<VideoPlayer />} />
           <Route path="/search" element={<SearchResults />} />

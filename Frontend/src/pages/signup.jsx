@@ -63,9 +63,10 @@ function Signup() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-black px-4">
       <div className="w-full max-w-2xl bg-gray-900 p-6 rounded-lg border border-gray-700 shadow-xl">
-        <h2 className="text-xl font-bold text-center text-gray-200 mb-4">
-          Signup
-        </h2>
+       <div className="bg-gradient-to-r from-red-600 to-pink-600 p-6 text-center rounded-t-md rounded-b-md mb-2">
+          <h1 className="text-3xl font-bold text-white">Create Account</h1>
+          <p className="text-red-100 mt-2">Sign up to start your journey</p>
+        </div>
 
         <form
           onSubmit={handleSubmit}
@@ -137,14 +138,12 @@ function Signup() {
             disabled={loading}
             className={`w-full py-2 text-white font-bold text-lg rounded-md transition duration-300 cursor-pointer ${
               loading
-                ? "bg-red-600 cursor-not-allowed"
-                : "bg-red-600 hover:bg-red-700"
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {loading ? "SignUp..." : "Sign Up"}
           </button>
-
-         
         </form>
 
         <div className="mt-3 text-center">

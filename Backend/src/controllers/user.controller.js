@@ -5,6 +5,8 @@ import { ApiResponse } from '../utils/ApiResponse.js'
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
+import sendEmail from '../utils/sendEmail.js';
 
 //✅
 const AccessAndRefreshToken = async (userId) => {
@@ -102,14 +104,12 @@ const userLogin = asyncHandler(async (req, res) => {
 	// remove password and refresh token field from response		
 	// return res
 
-	const { email, password, username } = req.body;
-	if (!(username || password || email)) {
+	const { email, password } = req.body;
+	if (!(password || email)) {
 		throw new ApiError(400, "All fields are required")
 	}
 
-	const user = await User.findOne({
-		$or: [{ email }, { username }]
-	});
+	const user = await User.findOne({ email });
 
 	if (!user) {
 		throw new ApiError(404, "User does not exist")
@@ -233,30 +233,50 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 
 //✅
-const changeOldPassword = asyncHandler(async (req, res) => {
-	const { oldPassword, newPassword } = req.body;
+ const changeOldPassword = asyncHandler(async (req, res) => {
+	const { email } = req.body;
+	if (!email) throw new ApiError(400, "Email is required");
 
-	//console.log(oldPassword, newPassword)
-	try {
-		if (!oldPassword || !newPassword) {
-			throw new ApiError(400, "All fields are required")
-		}
-		const user = await User.findById(req.user?._id);
+	const user = await User.findOne({ email });
+	if (!user) throw new ApiError(404, "User not found");
 
-		const isPasswordValid = await user.isPasswordCorrect(oldPassword);
-		if (!isPasswordValid) {
-			throw new ApiError(400, "Invalid old password")
-		}
-		user.password = newPassword;
-		await user.save({ validateBeforeSave: false });
-		return res
-			.status(200)
-			.json(new ApiResponse(200, {}, "Password changed successfully"))
-	} catch (error) {
-		throw new ApiError(500, "Something went wrong while changing password")
-	}
+	// generate reset token
+	const resetToken = crypto.randomBytes(32).toString("hex");
+	const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-})
+	user.resetPasswordToken = resetTokenHash;
+	user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 min
+	await user.save({ validateBeforeSave: false });
+
+	const resetUrl = `${req.protocol}://${req.get("host")}/api/v1/users/reset-password/${resetToken}`;
+
+	await sendEmail({
+		to: user.email,
+		subject: "Password Reset Request",
+		text: `Click on the link to reset password: ${resetUrl}`
+	});
+
+	return res.status(200).json(new ApiResponse(200, {}, "Password reset email sent"));
+});
+
+// Step 2: Reset password
+ const resetPassword = asyncHandler(async (req, res) => {
+	const resetTokenHash = crypto.createHash("sha256").update(req.params.token).digest("hex");
+
+	const user = await User.findOne({
+		resetPasswordToken: resetTokenHash,
+		resetPasswordExpire: { $gt: Date.now() }
+	});
+
+	if (!user) throw new ApiError(400, "Token is invalid or expired");
+
+	user.password = req.body.newPassword;
+	user.resetPasswordToken = undefined;
+	user.resetPasswordExpire = undefined;
+	await user.save({ validateBeforeSave: false });
+
+	return res.status(200).json(new ApiResponse(200, {}, "Password reset successfully"));
+});
 
 
 
@@ -515,11 +535,13 @@ const getWatchHistory = asyncHandler(async (req, res) => {
 
 
 export {
+
 	userRegister,
 	userLogin,
 	userLogout,
 	refreshAccessToken,
 	changeOldPassword,
+	resetPassword,
 	currentUser,
 	updateUserDetails,
 	updateUserAvatar,

@@ -9,7 +9,8 @@ import {
 	updateUserAvatar,
 	updateUserCoverImage,
 	getUserChannelProfile,
-	getWatchHistory
+	getWatchHistory,
+	resetPassword
 } from "../controllers/user.controller.js";
 import { Router } from "express";
 import { upload } from '../middlewares/multer.middleware.js'
@@ -38,7 +39,8 @@ router.post("/login", userLogin);
 // secure routes
 router.post("/logout", jwtVerify, userLogout);
 router.post("/refresh-token",jwtVerify, refreshAccessToken);
-router.post("/forget-password", jwtVerify, changeOldPassword)
+router.post("/forget-password", changeOldPassword);
+//router.post("/reset-password/:token", resetPassword);
 router.get("/current-user", jwtVerify, currentUser)
 router.patch("/update-account", jwtVerify, updateUserDetails)
 
