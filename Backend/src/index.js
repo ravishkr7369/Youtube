@@ -4,24 +4,24 @@ import serverless from 'serverless-http';
 import app from './app.js';
 
 
-dotenv.config({ path: './.env' });
+// dotenv.config({ path: './.env' });
 
-let isDbReady = false;
+// let isDbReady = false;
 
-// Ensure DB connection
-async function ensureDb() {
-	if (!isDbReady) {
-		console.log("Connecting to database...");
-		await connectDB();
-		isDbReady = true;
-	}
-}
+// // Ensure DB connection
+// async function ensureDb() {
+// 	if (!isDbReady) {
+// 		console.log("Connecting to database...");
+// 		await connectDB();
+// 		isDbReady = true;
+// 	}
+// }
 
-// Middleware to connect DB before handling any request
-app.use(async (req, res, next) => {
-	await ensureDb();
-	next();
-});
+// // Middleware to connect DB before handling any request
+// app.use(async (req, res, next) => {
+// 	await ensureDb();
+// 	next();
+// });
 
 
 
@@ -42,5 +42,15 @@ app.use(async (req, res, next) => {
 
 
 
-export default serverless(app);
+
+
+// export default serverless(app);
+
+const app = express();
+
+app.get("/", (req, res) => {
+	res.send("Hello Vercel 🚀");
+});
+
+export default app;
 
