@@ -6,6 +6,8 @@ import app from './app.js';
 dotenv.config({ path: './.env' });
 
 let isDbReady = false;
+
+// Ensure DB connection
 async function ensureDb() {
 	if (!isDbReady) {
 		console.log("Connecting to database...");
@@ -14,23 +16,21 @@ async function ensureDb() {
 	}
 }
 
-// Middleware to ensure DB is ready before handling any request
+// Middleware to connect DB before handling any request
 app.use(async (req, res, next) => {
 	await ensureDb();
 	next();
 });
 
-// Export serverless handler
 
 
-const PORT = process.env.PORT || 8000;
+
+// const PORT = process.env.PORT || 8000;
 
 
 // connectDB()
 // .then(()=>{
-// 	app.listen(PORT, () => {
-// 		console.log(`Server is running on port ${PORT}`);
-// 	})
+// 	console.log(`Server is running on port ${PORT}`);
 // })
 
 // .catch((error)=>{
@@ -40,5 +40,6 @@ const PORT = process.env.PORT || 8000;
 
 
 
-export default serverless(app);
+
+export const handler = serverless(app);
 
