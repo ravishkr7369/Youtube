@@ -3,6 +3,7 @@ import connectDB from './db/index.js';
 import serverless from 'serverless-http';
 import app from './app.js';
 
+
 dotenv.config({ path: './.env' });
 
 let isDbReady = false;
@@ -41,5 +42,5 @@ app.use(async (req, res, next) => {
 
 
 
-export const handler = serverless(app);
+export default serverless(app);
 
