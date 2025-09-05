@@ -24,6 +24,12 @@ import playlistRoutes from './routes/playlist.route.js';
 import historyRoutes from './routes/history.route.js'
 
 
+app.get("/", (req, res) => {
+	res.status(200).json({
+		success: true,
+		message: "Backend is running successfully 🚀"
+	});
+});
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/videos', videoRoutes);
