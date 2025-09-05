@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import connectDB from './db/index.js';
 import serverless from 'serverless-http';
-import app from './app.js';
+//import app from './app.js';
 
 
 // dotenv.config({ path: './.env' });
@@ -46,11 +46,19 @@ import app from './app.js';
 
 // export default serverless(app);
 
+import express from "express";
+import serverless from "serverless-http";
+
 const app = express();
 
 app.get("/", (req, res) => {
-	res.send("Hello Vercel 🚀");
+	res.json({ success: true, message: "Test backend running 🚀" });
 });
 
-export default app;
+app.get("/hello", (req, res) => {
+	res.send("Hello from Vercel + Express 👋");
+});
+
+// Vercel ko default export chahiye
+export default serverless(app);
 
