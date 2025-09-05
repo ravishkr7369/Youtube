@@ -1,6 +1,6 @@
-import dotenv from 'dotenv';
-import connectDB from './db/index.js';
-import serverless from 'serverless-http';
+// import dotenv from 'dotenv';
+// import connectDB from './db/index.js';
+// import serverless from 'serverless-http';
 //import app from './app.js';
 
 
@@ -51,14 +51,15 @@ import serverless from "serverless-http";
 
 const app = express();
 
+// ✅ test route
 app.get("/", (req, res) => {
-	res.json({ success: true, message: "Test backend running 🚀" });
+	res.send("🚀 Backend is working on Vercel!");
 });
 
-app.get("/hello", (req, res) => {
-	res.send("Hello from Vercel + Express 👋");
+// ✅ ek aur route test ke liye
+app.get("/api/hello", (req, res) => {
+	res.json({ message: "Hello from Vercel backend!" });
 });
 
-// Vercel ko default export chahiye
 export default serverless(app);
 
