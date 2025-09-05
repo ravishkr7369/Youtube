@@ -33,4 +33,4 @@ app.use("/api/v1/subscriptions", subscriptionRoutes)
 app.use("/api/v1/playlists", playlistRoutes)
 app.use("/api/v1/history", historyRoutes)
 
-export {app}
+export default app;
