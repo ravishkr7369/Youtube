@@ -125,10 +125,12 @@ const userLogin = asyncHandler(async (req, res) => {
 	const { accessToken, refreshToken } = await AccessAndRefreshToken(user._id);
 	const loggedInUser = await User.findById(user._id).select("-password -refreshToken -__v -createdAt -updatedAt");
 
-	const options = {
-		httpOnly: true,
-		secure: false,
-	}
+	const options =  {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "None" : "lax",
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    path:"/"
 
 	// console.log("Access Token: ", accessToken);
 	// console.log("Refresh Token: ", refreshToken);
