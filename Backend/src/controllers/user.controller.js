@@ -131,6 +131,7 @@ const userLogin = asyncHandler(async (req, res) => {
     sameSite: isProduction ? "None" : "lax",
     maxAge: 24 * 60 * 60 * 1000, // 1 day
     path:"/"
+	}
 
 	// console.log("Access Token: ", accessToken);
 	// console.log("Refresh Token: ", refreshToken);
@@ -166,8 +167,12 @@ const userLogout = asyncHandler(async (req, res) => {
 		)
 
 		const options = {
-			httpOnly: true,
-			secure: true,
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "None" : "lax",
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    path:"/"
+
 
 		}
 
