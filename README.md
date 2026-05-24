@@ -41,17 +41,17 @@ This project addresses the need for a self-hosted video hosting and community pl
 
 ### Frontend
 
-| Technology |      Purpose |
-|------------|--------------------------|
-| React 19 | Modern UI library for building interactive user interfaces |
-| Vite | Fast frontend build tool and development server |
-| Tailwind CSS | Utility-first CSS framework for responsive styling |
-| Redux Toolkit | Global state management |
+| Technology       |      Purpose |
+|------------------|--------------------------|
+| React 19         | Modern UI library for building interactive user interfaces |
+| Vite             | Fast frontend build tool and development server |
+| Tailwind CSS     | Utility-first CSS framework for responsive styling |
+| Redux Toolkit    | Global state management |
 | React Router DOM | Client-side routing and navigation |
-| Axios | HTTP client for API communication |
-| Framer Motion | Smooth animations and transitions |
-| React Toastify | Toast notification system |
-| SweetAlert2 | Beautiful popup alerts and modals |
+| Axios            | HTTP client for API communication |
+| Framer Motion    | Smooth animations and transitions |
+| React Toastify   | Toast notification system |
+| SweetAlert2      | Beautiful popup alerts and modals |
 
 ---
 
@@ -59,16 +59,16 @@ This project addresses the need for a self-hosted video hosting and community pl
 
 | Technology   |    Purpose   |
 |--------------|--------------|
-| Node.js | JavaScript runtime environment |
-| Express.js 5 | Backend framework for REST APIs |
-| MongoDB | NoSQL database |
-| Mongoose | MongoDB object modeling (ODM) |
-| JWT | Authentication and authorization |
-| bcrypt | Password hashing and security |
-| Multer | File upload handling middleware |
-| Cloudinary | Cloud-based media storage |
-| dotenv | Environment variable management |
-| cookie-parser | Cookie parsing middleware |
+| Node.js      | JavaScript runtime environment |
+| Express.js   | Backend framework for REST APIs |
+| MongoDB      | NoSQL database |
+| Mongoose     | MongoDB object modeling (ODM) |
+| JWT          | Authentication and authorization |
+| bcrypt       | Password hashing and security |
+| Multer       | File upload handling middleware |
+| Cloudinary   | Cloud-based media storage |
+| dotenv       | Environment variable management |
+| cookie-parser| Cookie parsing middleware |
 
 ## Architecture Overview
 
@@ -392,7 +392,7 @@ npm run build
 Built a full-stack video streaming platform with React, Redux Toolkit, Express, MongoDB, JWT authentication, Cloudinary file uploads, playlists, history, subscriptions, and social interactions.
 
 **Resume bullets**
-- Developed a full-stack video-sharing web app using React 19, Vite, Tailwind CSS, Express 5, MongoDB, and JWT-based authentication.
+- Developed a full-stack video-sharing web app using React 19, Vite, Tailwind CSS, Express.js, MongoDB, and JWT-based authentication.
 - Implemented secure user registration, login, profile updates, cloud-based file uploads, watch history, playlists, likes, comments, and subscription management.
 - Designed RESTful APIs, middleware authentication, and stateful frontend routing for a production-style streaming product.
 
