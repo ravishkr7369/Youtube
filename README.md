@@ -441,11 +441,11 @@ Built a full-stack video streaming platform with React, Redux Toolkit, Express, 
 
 ## Author
 
-**Ravish**
+**Ravish Kumar**
 
-- GitHub: https://github.com/<your-username>
-- Email: `<your-email@example.com>`
-- LinkedIn: https://linkedin.com/in/<your-profile>
+- GitHub: https://github.com/ravishkr7369
+- Email: ravishkr7369@gmail.com
+- LinkedIn: https://linkedin.com/in/iamravish
 
 ---
 
