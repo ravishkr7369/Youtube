@@ -104,12 +104,14 @@ const userLogin = asyncHandler(async (req, res) => {
 	// remove password and refresh token field from response		
 	// return res
 
+
 	const { email, password } = req.body;
 	if (!(password || email)) {
 		throw new ApiError(400, "All fields are required")
 	}
 
 	const user = await User.findOne({ email });
+
 
 	if (!user) {
 		throw new ApiError(404, "User does not exist")

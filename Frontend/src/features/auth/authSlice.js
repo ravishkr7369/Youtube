@@ -4,7 +4,8 @@ import axios from "axios";
 
 // Set up axios defaults
 axios.defaults.withCredentials = true;
-const BASE_URL = `${import.meta.env.VITE_URL}`;
+const BASE_URL = import.meta.env.VITE_URL;
+
 
 // ---------------------------
 // Thunks (Async API calls)
@@ -24,10 +25,14 @@ export const signup = createAsyncThunk("auth/register", async (formData, thunkAP
 
 // 2. Login
 export const login = createAsyncThunk("auth/login", async (data, thunkAPI) => {
+	
 	try {
 		const res = await axios.post(`${BASE_URL}/users/login`, data);
+		
+		
 		return res.data.data;
 	} catch (err) {
+		console.log("Login error:", err); // Debug log to check the error response
 		return thunkAPI.rejectWithValue(err.response?.data?.message);
 	}
 });

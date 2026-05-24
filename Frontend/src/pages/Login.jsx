@@ -31,6 +31,8 @@ function Login() {
         email: data.email,
         password: data.password,
       };
+
+     
       await dispatch(login(payload)).unwrap();
       toast.success("Login successful!");
       navigate("/");
