@@ -124,7 +124,8 @@ const userLogin = asyncHandler(async (req, res) => {
 
 	const { accessToken, refreshToken } = await AccessAndRefreshToken(user._id);
 	const loggedInUser = await User.findById(user._id).select("-password -refreshToken -__v -createdAt -updatedAt");
-
+	
+	const isProduction = process.env.NODE_ENV === "production";
 	const options =  {
     httpOnly: true,
     secure: isProduction,
@@ -166,6 +167,7 @@ const userLogout = asyncHandler(async (req, res) => {
 			}
 		)
 
+	const isProduction = process.env.NODE_ENV === "production";
 		const options = {
     httpOnly: true,
     secure: isProduction,
